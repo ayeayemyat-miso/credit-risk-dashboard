@@ -1,0 +1,12 @@
+ticker,name,sector,watch
+AAPL,Apple Inc.,Technology,Yes
+MSFT,Microsoft Corp.,Technology,Yes
+GOOGL,Alphabet Inc.,Technology,Yes
+NVDA,NVIDIA Corp.,Technology,Yes
+TSLA,Tesla Inc.,Auto,Yes
+WMT,Walmart Inc.,Retail,Yes
+MCD,McDonald's Corp.,Retail,Yes
+JPM,JPMorgan Chase,Financial,No
+XOM,Exxon Mobil,Energy,Yes
+HD,Home Depot Inc.,Retail,Yes
+UNH,UnitedHealth Group,Healthcare,Yes

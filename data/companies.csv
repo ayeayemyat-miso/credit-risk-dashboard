@@ -2,11 +2,28 @@ ticker,name,sector,watch
 AAPL,Apple Inc.,Technology,Yes
 MSFT,Microsoft Corp.,Technology,Yes
 GOOGL,Alphabet Inc.,Technology,Yes
-NVDA,NVIDIA Corp.,Technology,Yes
+NVDA,NVIDIA Corp.,Semiconductors,Yes
 TSLA,Tesla Inc.,Auto,Yes
 WMT,Walmart Inc.,Retail,Yes
 MCD,McDonald's Corp.,Retail,Yes
-JPM,JPMorgan Chase,Financial,No
-XOM,Exxon Mobil,Energy,Yes
+COST,Costco Wholesale Corp.,Retail,Yes
 HD,Home Depot Inc.,Retail,Yes
 UNH,UnitedHealth Group,Healthcare,Yes
+XOM,Exxon Mobil Corp.,Energy,Yes
+JPM,JPMorgan Chase,Financial,Yes
+V,Visa Inc.,Financial,Yes
+MA,Mastercard Inc.,Financial,Yes
+PG,Procter & Gamble Co.,Consumer Staples,Yes
+KO,Coca-Cola Co.,Beverages,Yes
+PFE,Pfizer Inc.,Pharmaceuticals,Yes
+JNJ,Johnson & Johnson,Healthcare,Yes
+CAT,Caterpillar Inc.,Industrials,Yes
+BA,Boeing Co.,Aerospace,Yes
+IBM,IBM Corp.,Technology,Yes
+ORCL,Oracle Corp.,Technology,Yes
+ADBE,Adobe Inc.,Technology,Yes
+AMD,AMD Inc.,Semiconductors,Yes
+INTC,Intel Corp.,Semiconductors,Yes
+AMZN,Amazon.com Inc.,Retail,Yes
+NFLX,Netflix Inc.,Media,Yes
+META,Meta Platforms Inc.,Media,Yes

@@ -1,9 +1,4 @@
-# app/dashboard.py
-"""
-Real-Time Credit Risk Dashboard
-Monitors credit ratings for companies in real-time with detailed breakdowns
-Deployment-ready for Render.com
-"""
+# app/dashboard.py (Updated - Shows data dates everywhere)
 
 import sys
 import os
@@ -12,13 +7,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import dash
-from dash import dcc, html, Input, Output, State, dash_table, no_update
+from dash import dcc, html, Input, Output, State, dash_table
 import plotly.graph_objs as go
-import plotly.express as px
 from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import json
 import logging
 
 # Import your modules
@@ -34,14 +29,23 @@ logger = logging.getLogger(__name__)
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
-server = app.server  # <--- IMPORTANT: Required for Render deployment
-app.title = "KBRA Credit Risk Dashboard"
+server = app.server
+app.title = "Credit Risk Dashboard"
+
+# Create all company options for dropdown (with names)
+ALL_COMPANY_OPTIONS = [
+    {'label': f"{ticker} - {config.COMPANY_NAMES.get(ticker, ticker)}", 'value': ticker}
+    for ticker in config.DEFAULT_TICKERS
+]
+
+# Default watchlist (first 5 companies)
+DEFAULT_WATCHLIST = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA']
 
 # Define layout
 app.layout = html.Div([
     # Header
     html.Div([
-        html.H1("📊 KBRA Credit Risk Dashboard", 
+        html.H1("📊 Credit Risk Dashboard", 
                 style={'text-align': 'center', 'color': '#2c3e50', 'margin-top': '20px',
                        'font-family': 'Arial, sans-serif', 'font-size': '36px'}),
         html.P("Real-time credit ratings using KBRA methodology",
@@ -49,49 +53,64 @@ app.layout = html.Div([
                       'margin-bottom': '30px'})
     ]),
     
-    # Controls
+    # Controls Section
     html.Div([
+        # Company Selector
         html.Div([
-            html.H3("Select Companies to Monitor", 
-                    style={'text-align': 'center', 'color': '#34495e', 'margin-bottom': '15px'}),
+            html.Label("📋 Select Companies", style={'font-weight': 'bold', 'margin-bottom': '5px'}),
             dcc.Dropdown(
-                id='company-dropdown',
-                options=[{'label': ticker, 'value': ticker} for ticker in config.DEFAULT_TICKERS],
+                id='company-selector',
+                options=ALL_COMPANY_OPTIONS,
                 value=['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA'],
                 multi=True,
-                style={'width': '80%', 'margin': 'auto', 'font-family': 'Arial, sans-serif',
-                       'background-color': 'white'}
+                placeholder="Select companies to analyze...",
+                style={'width': '100%', 'font-family': 'Arial, sans-serif'}
             ),
-        ], style={'padding': '20px'}),
+        ], style={'margin-bottom': '20px'}),
         
+        # Watchlist Buttons
         html.Div([
-            html.Button('🔄 Refresh Data', id='refresh-button', n_clicks=0,
+            html.Button('⭐ Add Selected to Watchlist', id='add-to-watchlist', n_clicks=0,
                        style={'background-color': '#3498db', 'color': 'white', 
-                              'padding': '12px 24px', 'border': 'none', 'border-radius': '5px',
-                              'cursor': 'pointer', 'font-size': '16px', 'margin': '5px',
+                              'padding': '10px 20px', 'border': 'none', 'border-radius': '5px',
+                              'cursor': 'pointer', 'font-size': '14px', 'margin-right': '10px',
+                              'font-weight': 'bold'}),
+            
+            html.Button('➖ Remove Selected from Watchlist', id='remove-from-watchlist', n_clicks=0,
+                       style={'background-color': '#e74c3c', 'color': 'white', 
+                              'padding': '10px 20px', 'border': 'none', 'border-radius': '5px',
+                              'cursor': 'pointer', 'font-size': '14px', 'margin-right': '10px',
+                              'font-weight': 'bold'}),
+            
+            html.Button('🔄 Refresh Data', id='refresh-button', n_clicks=0,
+                       style={'background-color': '#2ecc71', 'color': 'white', 
+                              'padding': '10px 20px', 'border': 'none', 'border-radius': '5px',
+                              'cursor': 'pointer', 'font-size': '14px',
                               'font-weight': 'bold'}),
             
             html.Button('🗑️ Clear Cache', id='clear-cache-button', n_clicks=0,
-                       style={'background-color': '#e74c3c', 'color': 'white', 
-                              'padding': '12px 24px', 'border': 'none', 'border-radius': '5px',
-                              'cursor': 'pointer', 'font-size': '16px', 'margin': '5px',
+                       style={'background-color': '#e67e22', 'color': 'white', 
+                              'padding': '10px 20px', 'border': 'none', 'border-radius': '5px',
+                              'cursor': 'pointer', 'font-size': '14px', 'margin-left': '10px',
                               'font-weight': 'bold'}),
-            
-            html.Button('📥 Export Data', id='export-button', n_clicks=0,
-                       style={'background-color': '#2ecc71', 'color': 'white', 
-                              'padding': '12px 24px', 'border': 'none', 'border-radius': '5px',
-                              'cursor': 'pointer', 'font-size': '16px', 'margin': '5px',
-                              'font-weight': 'bold'}),
-        ], style={'text-align': 'center', 'margin': '20px'}),
+        ], style={'margin-bottom': '15px'}),
+        
+        # Watchlist Display
+        html.Div([
+            html.Label("⭐ My Watchlist (Click to add)", style={'font-weight': 'bold', 'margin-bottom': '10px'}),
+            html.Div(id='watchlist-display', style={'display': 'flex', 'flex-wrap': 'wrap', 'gap': '10px'}),
+        ], style={'margin-top': '15px', 'padding': '15px', 'background-color': '#f8f9fa', 
+                  'border-radius': '10px'}),
         
         html.Div(id='last-updated', style={'text-align': 'center', 'color': '#7f8c8d', 
                                            'font-family': 'Arial, sans-serif', 'margin': '10px',
-                                           'font-size': '14px'}),
+                                           'font-size': '12px'}),
         
         html.Div(id='data-status', style={'text-align': 'center', 'color': '#27ae60', 
                                           'font-family': 'Arial, sans-serif', 'margin': '10px',
                                           'font-size': '14px', 'font-weight': 'bold'}),
-    ], style={'background-color': '#f8f9fa', 'border-radius': '10px', 'margin': '20px',
+        
+    ], style={'background-color': 'white', 'border-radius': '10px', 'margin': '20px',
               'padding': '20px', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'}),
     
     # Rating cards
@@ -103,9 +122,13 @@ app.layout = html.Div([
         dcc.Tabs(id='tabs', value='risk-scores', children=[
             dcc.Tab(label='📊 Risk Scores', value='risk-scores', 
                    style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
-            dcc.Tab(label='📈 Financial Metrics', value='financial-metrics',
+            dcc.Tab(label='📈 KBRA Ratios', value='kbra-ratios',
                    style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
             dcc.Tab(label='🎯 Component Breakdown', value='component-breakdown',
+                   style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
+            dcc.Tab(label='📊 vs Actual Ratings', value='comparison',
+                   style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
+            dcc.Tab(label='⭐ My Watchlist Analysis', value='watchlist-analysis',
                    style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
             dcc.Tab(label='📋 Raw Data', value='raw-data',
                    style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
@@ -114,12 +137,10 @@ app.layout = html.Div([
                                           'border-radius': '0 0 10px 10px', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'}),
     ], style={'width': '95%', 'margin': 'auto', 'margin-top': '20px'}),
     
-    # Hidden div for storing detailed data
-    html.Div(id='detailed-data-store', style={'display': 'none'}),
-    
-    # Main data store
+    # Hidden div for storing data
     dcc.Store(id='data-store'),
     dcc.Store(id='detailed-store'),
+    dcc.Store(id='user-watchlist', storage_type='local', data=DEFAULT_WATCHLIST),
     dcc.Download(id='download-dataframe-csv'),
     
     # Auto-refresh every 60 minutes
@@ -130,25 +151,45 @@ app.layout = html.Div([
     ),
 ])
 
+def create_watchlist_chip(ticker):
+    """Create a clickable watchlist chip"""
+    company_name = config.COMPANY_NAMES.get(ticker, ticker)
+    return html.Span(
+        f"⭐ {ticker} - {company_name[:20]}",
+        id={'type': 'watchlist-chip', 'index': ticker},
+        style={
+            'background-color': '#3498db',
+            'color': 'white',
+            'padding': '5px 12px',
+            'border-radius': '20px',
+            'cursor': 'pointer',
+            'font-size': '12px',
+            'display': 'inline-block'
+        }
+    )
+
 def create_rating_card(ticker, rating, business_score, financial_score, data_year, components):
     """Create a styled card for a company's rating with hover details."""
     
     # Color based on rating
     if rating in ['AAA', 'AA']:
-        color = '#2ecc71'  # Green
+        color = '#2ecc71'
         bg_color = '#d4edda'
         border_color = '#c3e6cb'
     elif rating in ['A', 'BBB']:
-        color = '#f39c12'  # Orange
+        color = '#f39c12'
         bg_color = '#fff3cd'
         border_color = '#ffeeba'
     else:
-        color = '#e74c3c'  # Red
+        color = '#e74c3c'
         bg_color = '#f8d7da'
         border_color = '#f5c6cb'
     
-    # Create tooltip text
+    company_name = config.COMPANY_NAMES.get(ticker, ticker)
+    
     tooltip = f"""
+    {company_name}
+    Data Period: {data_year}
     Industry Risk: {components.get('industry_risk', 'N/A')}
     Competitive Risk: {components.get('competitive_risk', 'N/A')}
     Liquidity Risk: {components.get('liquidity_risk', 'N/A')}
@@ -161,26 +202,99 @@ def create_rating_card(ticker, rating, business_score, financial_score, data_yea
     
     return html.Div([
         html.Div([
-            html.H4(ticker, style={'margin': '5px', 'color': '#2c3e50', 'font-size': '20px'}),
-            html.H2(rating, style={'color': color, 'margin': '5px', 'font-size': '36px', 
+            html.H4(company_name, style={'margin': '5px', 'color': '#2c3e50', 'font-size': '14px'}),
+            html.H2(rating, style={'color': color, 'margin': '5px', 'font-size': '32px', 
                                    'font-weight': 'bold'}),
             html.Div([
-                html.P(f"Business: {business_score:.2f}", style={'margin': '2px', 'font-size': '14px'}),
-                html.P(f"Financial: {financial_score:.2f}", style={'margin': '2px', 'font-size': '14px'}),
-                html.P(f"Data: {data_year}", style={'margin': '2px', 'font-size': '12px', 
+                html.P(f"Business: {business_score:.2f}", style={'margin': '2px', 'font-size': '12px'}),
+                html.P(f"Financial: {financial_score:.2f}", style={'margin': '2px', 'font-size': '12px'}),
+                html.P(f"Data: {data_year}", style={'margin': '2px', 'font-size': '10px', 
                                                     'color': '#7f8c8d'}),
             ], style={'margin-top': '10px'}),
         ], style={
             'border': f'2px solid {border_color}',
             'border-radius': '10px',
-            'padding': '15px',
-            'width': '220px',
+            'padding': '12px',
+            'width': '200px',
             'text-align': 'center',
             'background-color': bg_color,
-            'box-shadow': '0 4px 6px rgba(0,0,0,0.1)',
+            'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
             'cursor': 'help'
         }, title=tooltip),
-    ], style={'margin': '10px'})
+    ], style={'margin': '8px'})
+
+# Callback to update watchlist display
+@app.callback(
+    Output('watchlist-display', 'children'),
+    [Input('user-watchlist', 'data')]
+)
+def update_watchlist_display(watchlist):
+    """Display watchlist chips"""
+    if not watchlist:
+        return html.P("Your watchlist is empty. Use the dropdown above to add companies.", 
+                      style={'color': '#7f8c8d'})
+    
+    return [create_watchlist_chip(ticker) for ticker in watchlist]
+
+# Callback to add to watchlist
+@app.callback(
+    Output('user-watchlist', 'data', allow_duplicate=True),
+    [Input('add-to-watchlist', 'n_clicks'),
+     Input('remove-from-watchlist', 'n_clicks')],
+    [State('company-selector', 'value'),
+     State('user-watchlist', 'data')],
+    prevent_initial_call=True
+)
+def modify_watchlist(add_clicks, remove_clicks, selected_companies, current_watchlist):
+    """Add or remove companies from watchlist"""
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return current_watchlist
+    
+    current = current_watchlist or DEFAULT_WATCHLIST
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if button_id == 'add-to-watchlist' and selected_companies:
+        new_watchlist = list(current)
+        for ticker in selected_companies:
+            if ticker not in new_watchlist:
+                new_watchlist.append(ticker)
+        return new_watchlist
+    
+    elif button_id == 'remove-from-watchlist' and selected_companies:
+        return [t for t in current if t not in selected_companies]
+    
+    return current
+
+# Callback to handle watchlist chip clicks
+@app.callback(
+    Output('company-selector', 'value'),
+    [Input({'type': 'watchlist-chip', 'index': dash.ALL}, 'n_clicks')],
+    [State('company-selector', 'value')],
+    prevent_initial_call=True
+)
+def select_from_watchlist(n_clicks_list, current_selection):
+    """When a watchlist chip is clicked, add it to selection"""
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return current_selection
+    
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    try:
+        trigger_dict = json.loads(triggered_id)
+        ticker = trigger_dict.get('index')
+    except:
+        return current_selection
+    
+    if ticker:
+        if current_selection and ticker in current_selection:
+            return current_selection
+        elif current_selection:
+            return current_selection + [ticker]
+        else:
+            return [ticker]
+    
+    return current_selection
 
 # Callback to update data
 @app.callback(
@@ -190,13 +304,13 @@ def create_rating_card(ticker, rating, business_score, financial_score, data_yea
     [Input('refresh-button', 'n_clicks'),
      Input('interval-component', 'n_intervals'),
      Input('clear-cache-button', 'n_clicks')],
-    [Input('company-dropdown', 'value')]
+    [Input('company-selector', 'value')]
 )
 def fetch_and_store_data(refresh_clicks, interval_clicks, cache_clicks, selected_tickers):
-    """Fetch data and store in dcc.Store."""
+    """Fetch data and store in dcc.Store"""
     
     if not selected_tickers:
-        return {}, {}, "Please select at least one company"
+        return {}, {}, "No companies selected. Use dropdown to add companies."
     
     # Clear cache if requested
     ctx = dash.callback_context
@@ -212,44 +326,45 @@ def fetch_and_store_data(refresh_clicks, interval_clicks, cache_clicks, selected
     
     for ticker in selected_tickers:
         try:
-            # Fetch data
             data = DataFetcher.fetch_company_data(ticker)
             if not data:
                 failed.append(ticker)
                 continue
             
-            # Calculate ratios
             ratios = RatioCalculator.calculate_all(data)
-            
-            # Assess risks
             business_assessment = BusinessRiskAssessor.assess_all(data)
             financial_assessment = FinancialRiskAssessor.assess_all(data, ratios)
             
-            # Calculate rating
             business_score = business_assessment.calculate_weighted_score()
             business_category = RatingCalculator._business_score_to_category(business_score)
             financial_score = financial_assessment.calculate_weighted_score()
             rating = RatingCalculator._determine_rating_from_table(business_category, financial_score)
             
-            # Store basic results
+            # Calculate revenue in billions for size metric
+            revenue_bn = data.get('revenue', 0) / 1e9 if data.get('revenue') else 0
+            data_year = str(data.get('data_year', 'N/A'))
+            
             results.append({
                 'ticker': ticker,
                 'rating': rating,
                 'business_score': business_score,
                 'financial_score': financial_score,
-                'data_year': str(data.get('data_year', 'N/A')),
-                'revenue': data.get('revenue'),
-                'ebitda': data.get('ebitda'),
-                'total_debt': data.get('total_debt'),
-                'cash': data.get('cash')
+                'data_year': data_year,
+                'revenue_bn': revenue_bn,
+                'ebit_margin': ratios.get('ebit_margin', 0),
+                'fcf_to_debt': ratios.get('fcf_to_debt', 0),
+                'debt_to_ebitda': ratios.get('debt_to_ebitda', 0),
+                'ebit_interest': ratios.get('ebit_interest', 0),
+                'roa': ratios.get('roa', 0),
+                'debt_to_capital': ratios.get('debt_to_capital', 0)
             })
             
-            # Store detailed results for tooltips and breakdown
             detailed_results.append({
                 'ticker': ticker,
                 'rating': rating,
                 'business_score': business_score,
                 'financial_score': financial_score,
+                'data_year': data_year,
                 'industry_risk': business_assessment.industry_risk.value,
                 'competitive_risk': business_assessment.competitive_risk.value,
                 'liquidity_risk': business_assessment.liquidity_risk.value,
@@ -258,10 +373,13 @@ def fetch_and_store_data(refresh_clicks, interval_clicks, cache_clicks, selected
                 'cash_flow_score': financial_assessment.cash_flow_score,
                 'leverage_score': financial_assessment.leverage_score,
                 'coverage_score': financial_assessment.coverage_score,
-                'debt_to_ebitda': round(ratios.get('debt_to_ebitda', 0), 2) if pd.notna(ratios.get('debt_to_ebitda')) else 'N/A',
+                'revenue_bn': revenue_bn,
                 'ebit_margin': round(ratios.get('ebit_margin', 0) * 100, 1) if pd.notna(ratios.get('ebit_margin')) else 'N/A',
                 'fcf_to_debt': round(ratios.get('fcf_to_debt', 0), 3) if pd.notna(ratios.get('fcf_to_debt')) else 'N/A',
-                'roa': round(ratios.get('roa', 0) * 100, 1) if pd.notna(ratios.get('roa')) else 'N/A'
+                'debt_to_ebitda': round(ratios.get('debt_to_ebitda', 0), 2) if pd.notna(ratios.get('debt_to_ebitda')) else 'N/A',
+                'ebit_interest': round(ratios.get('ebit_interest', 0), 1) if pd.notna(ratios.get('ebit_interest')) else 'N/A',
+                'roa': round(ratios.get('roa', 0) * 100, 1) if pd.notna(ratios.get('roa')) else 'N/A',
+                'debt_to_capital': round(ratios.get('debt_to_capital', 0) * 100, 1) if pd.notna(ratios.get('debt_to_capital')) else 'N/A'
             })
             
         except Exception as e:
@@ -287,12 +405,12 @@ def update_display(stored_data, detailed_data, active_tab):
     """Update the dashboard display with stored data."""
     
     if not stored_data:
-        return [], html.Div("No data available. Please refresh.", style={'text-align': 'center', 'padding': '50px'}), ""
+        return [], html.Div("No data available. Please select companies to analyze.", 
+                           style={'text-align': 'center', 'padding': '50px'}), ""
     
-    # Create rating cards with detailed tooltips
+    # Create rating cards (already includes data_year)
     cards = []
     for company in stored_data:
-        # Find matching detailed data
         detail = next((d for d in detailed_data if d['ticker'] == company['ticker']), {})
         cards.append(create_rating_card(
             company['ticker'],
@@ -303,175 +421,163 @@ def update_display(stored_data, detailed_data, active_tab):
             detail
         ))
     
-    # Create tab content
+    # Tab content
     if active_tab == 'risk-scores':
-        # Bar chart of risk scores
         fig = go.Figure(data=[
-            go.Bar(name='Business Score', 
-                   x=[c['ticker'] for c in stored_data], 
-                   y=[c['business_score'] for c in stored_data],
-                   marker_color='#3498db',
-                   text=[f"{c['business_score']:.2f}" for c in stored_data],
-                   textposition='outside',
-                   hovertemplate='<b>%{x}</b><br>Business Score: %{y:.2f}<extra></extra>'),
-            go.Bar(name='Financial Score', 
-                   x=[c['ticker'] for c in stored_data], 
-                   y=[c['financial_score'] for c in stored_data],
-                   marker_color='#e74c3c',
-                   text=[f"{c['financial_score']:.2f}" for c in stored_data],
-                   textposition='outside',
-                   hovertemplate='<b>%{x}</b><br>Financial Score: %{y:.2f}<extra></extra>')
+            go.Bar(name='Business Score', x=[c['ticker'] for c in stored_data], 
+                   y=[c['business_score'] for c in stored_data], marker_color='#3498db'),
+            go.Bar(name='Financial Score', x=[c['ticker'] for c in stored_data], 
+                   y=[c['financial_score'] for c in stored_data], marker_color='#e74c3c')
+        ])
+        # Add data period to subtitle
+        data_periods = ', '.join(set([c['data_year'] for c in stored_data]))
+        fig.update_layout(title=f'Risk Scores by Company (Data Period: {data_periods})', 
+                         xaxis_title='Company', yaxis_title='Score', barmode='group')
+        content = dcc.Graph(figure=fig, style={'height': '500px'})
+        
+    elif active_tab == 'kbra-ratios':
+        # Show all 5 KBRA financial ratios with data period in subtitle
+        fig = make_subplots(rows=2, cols=3, subplot_titles=[
+            'Revenue (Size)', 'EBIT Margin %', 'FCF/Debt',
+            'Debt/EBITDA', 'EBIT/Interest', 'ROA %'
         ])
         
-        fig.update_layout(
-            title='Risk Scores by Company (Lower is Better)',
-            xaxis_title='Company',
-            yaxis_title='Score',
-            barmode='group',
-            template='plotly_white',
-            hovermode='x unified',
-            yaxis=dict(range=[0, 20]),
-            showlegend=True,
-            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
-        )
+        tickers = [c['ticker'] for c in stored_data]
+        data_periods = ', '.join(set([c['data_year'] for c in stored_data]))
         
-        content = dcc.Graph(figure=fig, style={'height': '500px'})
+        # Revenue
+        fig.add_trace(go.Bar(x=tickers, y=[c['revenue_bn'] for c in stored_data], 
+                            name='Revenue ($B)', marker_color='#3498db'), row=1, col=1)
         
-    elif active_tab == 'financial-metrics':
-        # Create metrics comparison
-        fig = go.Figure()
+        # EBIT Margin
+        fig.add_trace(go.Bar(x=tickers, y=[c['ebit_margin']*100 for c in stored_data], 
+                            name='EBIT Margin %', marker_color='#2ecc71'), row=1, col=2)
         
-        metrics = [
-            ('EBIT Margin %', 'ebit_margin', '#2ecc71'),
-            ('Debt/EBITDA', 'debt_to_ebitda', '#e74c3c'),
-            ('FCF/Debt', 'fcf_to_debt', '#3498db'),
-            ('ROA %', 'roa', '#f39c12')
-        ]
+        # FCF/Debt
+        fig.add_trace(go.Bar(x=tickers, y=[c['fcf_to_debt'] for c in stored_data], 
+                            name='FCF/Debt', marker_color='#f39c12'), row=1, col=3)
         
-        for metric_name, metric_key, color in metrics:
-            values = []
-            valid_tickers = []
-            for d in detailed_data:
-                val = d.get(metric_key, 'N/A')
-                if val != 'N/A':
-                    values.append(float(val))
-                    valid_tickers.append(d['ticker'])
-            
-            if values:
-                fig.add_trace(go.Bar(
-                    name=metric_name,
-                    x=valid_tickers,
-                    y=values,
-                    marker_color=color,
-                    text=[f"{v:.1f}" for v in values],
-                    textposition='outside'
-                ))
+        # Debt/EBITDA
+        fig.add_trace(go.Bar(x=tickers, y=[c['debt_to_ebitda'] for c in stored_data], 
+                            name='Debt/EBITDA', marker_color='#e74c3c'), row=2, col=1)
         
-        fig.update_layout(
-            title='Financial Metrics Comparison',
-            xaxis_title='Company',
-            yaxis_title='Value',
-            barmode='group',
-            template='plotly_white',
-            height=500,
-            showlegend=True,
-            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
-        )
+        # EBIT/Interest
+        fig.add_trace(go.Bar(x=tickers, y=[c['ebit_interest'] for c in stored_data], 
+                            name='EBIT/Interest', marker_color='#9b59b6'), row=2, col=2)
         
-        content = dcc.Graph(figure=fig, style={'height': '500px'})
+        # ROA
+        fig.add_trace(go.Bar(x=tickers, y=[c['roa']*100 for c in stored_data], 
+                            name='ROA %', marker_color='#1abc9c'), row=2, col=3)
+        
+        fig.update_layout(title=f'KBRA Financial Ratios (Data Period: {data_periods})', 
+                         height=600, showlegend=False)
+        content = dcc.Graph(figure=fig)
         
     elif active_tab == 'component-breakdown':
-        # Radar charts for each company
-        if not detailed_data:
-            content = html.Div("No detailed data available")
-        else:
-            # Create subplot for radar charts
+        if detailed_data:
             n_companies = len(detailed_data)
             cols = min(3, n_companies)
             rows = (n_companies + cols - 1) // cols
-            
-            fig = make_subplots(
-                rows=rows, cols=cols,
-                specs=[[{'type': 'polar'}]*cols for _ in range(rows)],
-                subplot_titles=[d['ticker'] for d in detailed_data]
-            )
-            
+            fig = make_subplots(rows=rows, cols=cols, specs=[[{'type': 'polar'}]*cols for _ in range(rows)],
+                               subplot_titles=[f"{d['ticker']} ({d['data_year']})" for d in detailed_data])
             for idx, d in enumerate(detailed_data):
                 row = idx // cols + 1
                 col = idx % cols + 1
-                
                 categories = ['Size', 'Profitability', 'Cash Flow', 'Leverage', 'Coverage']
-                values = [
-                    d.get('size_score', 0),
-                    d.get('profitability_score', 0),
-                    d.get('cash_flow_score', 0),
-                    d.get('leverage_score', 0),
-                    d.get('coverage_score', 0)
-                ]
-                
-                # Close the loop
+                values = [d.get('size_score', 0), d.get('profitability_score', 0),
+                         d.get('cash_flow_score', 0), d.get('leverage_score', 0),
+                         d.get('coverage_score', 0)]
                 categories.append(categories[0])
                 values.append(values[0])
-                
-                fig.add_trace(go.Scatterpolar(
-                    r=values,
-                    theta=categories,
-                    fill='toself',
-                    name=d['ticker'],
-                    line_color=['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6'][idx % 5]
-                ), row=row, col=col)
-            
-            fig.update_layout(
-                title='Financial Risk Component Breakdown',
-                height=400 * rows,
-                showlegend=False
-            )
-            
+                fig.add_trace(go.Scatterpolar(r=values, theta=categories, fill='toself', name=d['ticker']), 
+                            row=row, col=col)
+            fig.update_layout(title='Financial Risk Component Breakdown', height=400 * rows, showlegend=False)
             content = dcc.Graph(figure=fig)
-        
-    elif active_tab == 'raw-data':
-        # Create data table
-        df = pd.DataFrame(detailed_data)
-        if not df.empty:
-            # Select and rename columns for display
-            display_df = df[[
-                'ticker', 'rating', 'business_score', 'financial_score',
-                'industry_risk', 'competitive_risk', 'liquidity_risk',
-                'debt_to_ebitda', 'ebit_margin', 'fcf_to_debt', 'roa'
-            ]].copy()
-            
-            display_df.columns = [
-                'Ticker', 'Rating', 'Business', 'Financial',
-                'Industry Risk', 'Competitive', 'Liquidity',
-                'Debt/EBITDA', 'EBIT Margin %', 'FCF/Debt', 'ROA %'
-            ]
-            
-            content = html.Div([
-                html.H4("Detailed Company Data", style={'margin-bottom': '20px'}),
-                dash_table.DataTable(
-                    data=display_df.to_dict('records'),
-                    columns=[{'name': col, 'id': col} for col in display_df.columns],
-                    style_table={'overflowX': 'auto'},
-                    style_cell={
-                        'textAlign': 'center',
-                        'padding': '10px',
-                        'font-family': 'Arial, sans-serif'
-                    },
-                    style_header={
-                        'backgroundColor': '#3498db',
-                        'color': 'white',
-                        'fontWeight': 'bold'
-                    },
-                    style_data_conditional=[
-                        {
-                            'if': {'row_index': 'odd'},
-                            'backgroundColor': '#f8f9fa'
-                        }
-                    ]
-                )
-            ])
         else:
             content = html.Div("No data available")
+            
+    elif active_tab == 'comparison':
+        ratings_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'actual_ratings.csv')
+        try:
+            ratings_df = pd.read_csv(ratings_path)
+            comparison_data = []
+            matches = 0
+            total = 0
+            for company in stored_data:
+                ticker = company['ticker']
+                your_rating = company['rating']
+                data_year = company['data_year']
+                actual_row = ratings_df[ratings_df['ticker'] == ticker]
+                if not actual_row.empty:
+                    total += 1
+                    actual_rating = actual_row.iloc[0]['sp_rating']
+                    company_name = actual_row.iloc[0]['name']
+                    is_match = your_rating[:2] in actual_rating
+                    if is_match:
+                        matches += 1
+                    comparison_data.append({
+                        'Ticker': ticker, 'Company': company_name,
+                        'Your Rating': your_rating, 'S&P Rating': actual_rating,
+                        'Data Period': data_year, 'Match': '✓' if is_match else '✗'
+                    })
+            accuracy = round((matches / total) * 100, 1) if total > 0 else 0
+            content = html.Div([
+                html.Div([
+                    html.H4("Model Accuracy vs S&P Ratings", style={'text-align': 'center'}),
+                    html.Div([
+                        html.H2(f"{accuracy}%", style={'text-align': 'center', 'color': '#2ecc71', 'font-size': '48px'}),
+                        html.P(f"{matches} out of {total} companies match S&P ratings",
+                              style={'text-align': 'center'})
+                    ], style={'background-color': '#f8f9fa', 'padding': '20px', 'border-radius': '10px'})
+                ]),
+                dash_table.DataTable(data=comparison_data, columns=[
+                    {'name': 'Ticker', 'id': 'Ticker'},
+                    {'name': 'Company', 'id': 'Company'},
+                    {'name': 'Your Rating', 'id': 'Your Rating'},
+                    {'name': 'S&P Rating', 'id': 'S&P Rating'},
+                    {'name': 'Data Period', 'id': 'Data Period'},
+                    {'name': 'Match', 'id': 'Match'}
+                ], style_cell={'textAlign': 'center'}, style_header={'backgroundColor': '#2c3e50', 'color': 'white'})
+            ])
+        except Exception as e:
+            content = html.Div("Comparison data not available")
+            
+    elif active_tab == 'watchlist-analysis':
+        fig = go.Figure(data=[
+            go.Bar(name='Business Score', x=[c['ticker'] for c in stored_data], 
+                   y=[c['business_score'] for c in stored_data], marker_color='#3498db'),
+            go.Bar(name='Financial Score', x=[c['ticker'] for c in stored_data], 
+                   y=[c['financial_score'] for c in stored_data], marker_color='#e74c3c')
+        ])
+        data_periods = ', '.join(set([c['data_year'] for c in stored_data]))
+        fig.update_layout(title=f'Your Watchlist Analysis (Data Period: {data_periods})', 
+                         xaxis_title='Company', yaxis_title='Score', barmode='group')
+        content = dcc.Graph(figure=fig, style={'height': '500px'})
+        
+    elif active_tab == 'raw-data':
+        df = pd.DataFrame(detailed_data)
+        if not df.empty:
+            display_df = df[['ticker', 'data_year', 'rating', 'business_score', 'financial_score',
+                            'revenue_bn', 'ebit_margin', 'fcf_to_debt', 
+                            'debt_to_ebitda', 'ebit_interest', 'roa']].copy()
+            display_df.columns = ['Ticker', 'Data Period', 'Rating', 'Business', 'Financial',
+                                 'Revenue ($B)', 'EBIT Margin %', 'FCF/Debt',
+                                 'Debt/EBITDA', 'EBIT/Interest', 'ROA %']
+            display_df['Company Name'] = display_df['Ticker'].map(config.COMPANY_NAMES)
+            # Reorder columns to put Company Name next to Ticker
+            display_df = display_df[['Ticker', 'Company Name', 'Data Period', 'Rating', 'Business', 'Financial',
+                                     'Revenue ($B)', 'EBIT Margin %', 'FCF/Debt',
+                                     'Debt/EBITDA', 'EBIT/Interest', 'ROA %']]
+            content = dash_table.DataTable(
+                data=display_df.to_dict('records'),
+                columns=[{'name': col, 'id': col} for col in display_df.columns],
+                style_table={'overflowX': 'auto'}, style_cell={'textAlign': 'center'},
+                style_header={'backgroundColor': '#3498db', 'color': 'white'}
+            )
+        else:
+            content = html.Div("No data available")
+    else:
+        content = html.Div()
     
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     last_updated = f"Last updated: {timestamp}"
@@ -485,7 +591,6 @@ def update_display(stored_data, detailed_data, active_tab):
     prevent_initial_call=True
 )
 def clear_cache_and_refresh(n_clicks):
-    """Clear cache and trigger refresh."""
     if n_clicks > 0:
         cache.clear()
         logger.info("Cache cleared by user")
@@ -500,17 +605,17 @@ def clear_cache_and_refresh(n_clicks):
     prevent_initial_call=True
 )
 def export_data(n_clicks, data):
-    """Export data to CSV."""
     if n_clicks and data:
         df = pd.DataFrame(data)
+        df['Company Name'] = df['ticker'].map(config.COMPANY_NAMES)
         return dcc.send_data_frame(df.to_csv, f"credit_ratings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", index=False)
 
-# Run the app - UPDATED FOR RENDER DEPLOYMENT
+# Run the app
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8050))  # Get PORT from Render, default to 8050 locally
+    port = int(os.environ.get("PORT", 8050))
     print("="*60)
-    print("🚀 Starting KBRA Credit Risk Dashboard...")
-    print(f"📊 Open http://127.0.0.1:{port} in your browser")
+    print("🚀 Starting Credit Risk Dashboard...")
+    print("📊 Open http://127.0.0.1:8050 in your browser")
     print("⏱️  First load may be slow (fetching data from FMP)...")
     print("="*60)
-    app.run(host='0.0.0.0', port=port, debug=False)  # debug=False for production
+    app.run(host='0.0.0.0', port=port, debug=False)

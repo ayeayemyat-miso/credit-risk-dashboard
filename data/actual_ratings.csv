@@ -1,0 +1,29 @@
+ticker,name,sp_rating
+AAPL,Apple Inc.,AA+
+MSFT,Microsoft Corp.,AAA
+GOOGL,Alphabet Inc.,AA+
+NVDA,NVIDIA Corp.,AA-
+TSLA,Tesla Inc.,BBB
+WMT,Walmart Inc.,AA
+MCD,McDonald's Corp.,BBB+
+COST,Costco Wholesale Corp.,A+
+HD,Home Depot Inc.,A
+UNH,UnitedHealth Group Inc.,A+
+XOM,Exxon Mobil Corp.,AA-
+JPM,JPMorgan Chase & Co.,A-
+V,Visa Inc.,AA-
+MA,Mastercard Inc.,A+
+PG,Procter & Gamble Co.,AA-
+KO,Coca-Cola Co.,A+
+PFE,Pfizer Inc.,A
+JNJ,Johnson & Johnson,AAA
+CAT,Caterpillar Inc.,A
+BA,Boeing Co.,BBB-
+IBM,International Business Machines Corp.,A-
+ORCL,Oracle Corp.,BBB+
+ADBE,Adobe Inc.,A+
+AMD,Advanced Micro Devices Inc.,BBB+
+INTC,Intel Corp.,BBB+
+AMZN,Amazon.com Inc.,AA
+NFLX,Netflix Inc.,BBB+
+META,Meta Platforms Inc.,AA-

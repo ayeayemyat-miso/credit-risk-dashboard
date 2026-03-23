@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 cache = diskcache.Cache('data/cache')
 
 # Your free API key from FMP
-API_KEY = "sNlywRIpXRu4ZeAiRFxbrP8gVIo1HyDT"
+API_KEY = "ALPHA_VANTAGE_API_KEY"
 
 class DataFetcher:
     """Fetch financial data from Financial Modeling Prep API."""

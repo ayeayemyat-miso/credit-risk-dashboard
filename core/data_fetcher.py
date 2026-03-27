@@ -10,6 +10,7 @@ import numpy as np
 import logging
 import time
 import diskcache
+import os
 from datetime import datetime
 from typing import List, Dict, Optional
 
@@ -18,8 +19,12 @@ logger = logging.getLogger(__name__)
 # Setup cache (24 hours)
 cache = diskcache.Cache('data/cache')
 
-# Your free API key from FMP
-API_KEY = "ALPHA_VANTAGE_API_KEY"
+# Get API key from environment variable (set in Render)
+API_KEY = os.environ.get("FMP_API_KEY", "")
+
+# Warn if API key is missing
+if not API_KEY:
+    logger.warning("⚠️ FMP_API_KEY environment variable not set! Please set it in Render dashboard.")
 
 class DataFetcher:
     """Fetch financial data from Financial Modeling Prep API."""

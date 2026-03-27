@@ -1,7 +1,11 @@
-# app/dashboard.py (Updated - Shows data dates everywhere)
+# app/dashboard.py (Updated - With Render Free Tier Fixes)
 
 import sys
 import os
+import time
+import functools
+from threading import Thread
+import requests
 
 # Add the project root to Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,6 +30,41 @@ from core.rating_engine import RatingCalculator
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# ========== RENDER FREE TIER FIXES ==========
+
+def start_keep_alive():
+    """Start background thread to keep Render instance alive"""
+    def keep_alive_loop():
+        # Get your Render URL - you can set this as an environment variable
+        render_url = os.environ.get("RENDER_EXTERNAL_URL", "")
+        if not render_url:
+            # Fallback - you'll need to set this
+            logger.warning("RENDER_EXTERNAL_URL not set. Keep-alive disabled.")
+            return
+        
+        while True:
+            try:
+                # Ping the app every 4 minutes
+                response = requests.get(render_url, timeout=10)
+                logger.debug(f"Keep-alive ping sent - Status: {response.status_code}")
+            except Exception as e:
+                logger.debug(f"Keep-alive error: {e}")
+            time.sleep(240)  # 4 minutes (Render spins down after 15 mins of inactivity)
+    
+    # Only start if we have a URL
+    if os.environ.get("RENDER_EXTERNAL_URL"):
+        thread = Thread(target=keep_alive_loop, daemon=True)
+        thread.start()
+        logger.info("✅ Keep-alive thread started for Render free tier")
+    else:
+        logger.info("ℹ️ Keep-alive not started (not running on Render or URL not set)")
+
+# Start keep-alive automatically when running on Render
+if os.environ.get("RENDER"):
+    start_keep_alive()
+
+# ========== END RENDER FIXES ==========
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
@@ -296,7 +335,7 @@ def select_from_watchlist(n_clicks_list, current_selection):
     
     return current_selection
 
-# Callback to update data
+# Callback to update data with retry logic for Render free tier
 @app.callback(
     [Output('data-store', 'data'),
      Output('detailed-store', 'data'),
@@ -304,13 +343,20 @@ def select_from_watchlist(n_clicks_list, current_selection):
     [Input('refresh-button', 'n_clicks'),
      Input('interval-component', 'n_intervals'),
      Input('clear-cache-button', 'n_clicks')],
-    [Input('company-selector', 'value')]
+    [State('company-selector', 'value')]
 )
 def fetch_and_store_data(refresh_clicks, interval_clicks, cache_clicks, selected_tickers):
-    """Fetch data and store in dcc.Store"""
+    """Fetch data and store in dcc.Store with retry logic for slow startups."""
     
     if not selected_tickers:
         return {}, {}, "No companies selected. Use dropdown to add companies."
+    
+    # Add initial delay to allow Render to wake up (only for first request)
+    if not hasattr(fetch_and_store_data, '_initialized'):
+        fetch_and_store_data._initialized = True
+        # Add 5 second delay for first request to handle spin-up
+        logger.info("First request detected - adding delay for Render spin-up")
+        time.sleep(5)
     
     # Clear cache if requested
     ctx = dash.callback_context
@@ -324,9 +370,26 @@ def fetch_and_store_data(refresh_clicks, interval_clicks, cache_clicks, selected
     detailed_results = []
     failed = []
     
+    # Function to fetch with retry for each ticker
+    def fetch_with_retry(ticker, max_retries=2):
+        for attempt in range(max_retries):
+            try:
+                data = DataFetcher.fetch_company_data(ticker)
+                if data:
+                    return data
+                else:
+                    logger.warning(f"{ticker}: Attempt {attempt + 1} failed, retrying...")
+                    if attempt < max_retries - 1:
+                        time.sleep(3)  # Wait 3 seconds before retry
+            except Exception as e:
+                logger.error(f"{ticker}: Error on attempt {attempt + 1}: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(3)
+        return None
+    
     for ticker in selected_tickers:
         try:
-            data = DataFetcher.fetch_company_data(ticker)
+            data = fetch_with_retry(ticker)
             if not data:
                 failed.append(ticker)
                 continue
@@ -389,6 +452,10 @@ def fetch_and_store_data(refresh_clicks, interval_clicks, cache_clicks, selected
     status = f"✅ Loaded: {len(results)} companies"
     if failed:
         status += f" | ❌ Failed: {', '.join(failed)}"
+    
+    # Add note about loading time
+    if len(results) < len(selected_tickers):
+        status += " | ⏱️ First load may take 30-60 seconds (Render wake-up)"
     
     return results, detailed_results, status
 
@@ -616,6 +683,6 @@ if __name__ == '__main__':
     print("="*60)
     print("🚀 Starting Credit Risk Dashboard...")
     print("📊 Open http://127.0.0.1:8050 in your browser")
-    print("⏱️  First load may be slow (fetching data from FMP)...")
+    print("⏱️  First load may take 30-60 seconds (Render spin-up)")
     print("="*60)
     app.run(host='0.0.0.0', port=port, debug=False)

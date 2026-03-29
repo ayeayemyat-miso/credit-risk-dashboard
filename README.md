@@ -23,7 +23,7 @@ A **production-ready real-time credit risk dashboard** that implements Kroll Bon
 
 | Feature | Description |
 |---------|-------------|
-| **28 Companies** | Major US companies across Technology, Retail, Financial, Energy, Healthcare sectors |
+| **25 Companies** | Major US companies across Technology, Retail, Financial, Energy, Healthcare sectors |
 | **Real-time Data** | Fetches latest financials from Financial Modeling Prep API |
 | **KBRA Methodology** | Full implementation of Tables 8, 9, and 10 from KBRA's General Corporate Global Rating Methodology (August 2025).
 | **📊 Risk Scores** | Business and Financial risk scores comparison |
@@ -72,17 +72,20 @@ The dashboard includes a comparison tab that shows how KBRA model ratings match 
 
 The dashboard monitors **28 companies** across major sectors:
 
-| Sector | Companies |
-|--------|-----------|
-| **Technology** | Apple (AAPL), Microsoft (MSFT), Alphabet (GOOGL), NVIDIA (NVDA), Amazon (AMZN), IBM (IBM), Oracle (ORCL), Adobe (ADBE) |
-| **Semiconductors** | AMD, Intel (INTC) |
-| **Retail** | Walmart (WMT), McDonald's (MCD), Costco (COST), Home Depot (HD) |
-| **Financial** | JPMorgan (JPM), Visa (V), Mastercard (MA) |
-| **Energy** | Exxon Mobil (XOM) |
-| **Healthcare** | UnitedHealth (UNH), Johnson & Johnson (JNJ), Pfizer (PFE) |
-| **Consumer** | Procter & Gamble (PG), Coca-Cola (KO) |
-| **Industrials** | Caterpillar (CAT), Boeing (BA) |
-| **Media** | Netflix (NFLX), Meta (META) |
+| Sector              | Companies                                                                 |
+|--------------------|--------------------------------------------------------------------------|
+| **Technology**      | Apple Inc. (AAPL), Microsoft Corp. (MSFT), Alphabet Inc. (GOOGL), IBM Corp. (IBM), Adobe Inc. (ADBE) |
+| **Semiconductors**  | NVIDIA Corp. (NVDA), AMD Inc. (AMD), Intel Corp. (INTC)                  |
+| **Auto**            | Tesla Inc. (TSLA)                                                        |
+| **Retail**          | Walmart Inc. (WMT), Starbucks Corp. (SBUX), Costco Wholesale Corp. (COST), Lowe's Companies Inc. (LOW), Amazon.com Inc. (AMZN) |
+| **Healthcare**      | UnitedHealth Group (UNH), Johnson & Johnson (JNJ)                        |
+| **Energy**          | Exxon Mobil Corp. (XOM)                                                  |
+| **Financial**       | JPMorgan Chase (JPM), Visa Inc. (V)                                      |
+| **Consumer Staples**| PepsiCo Inc. (PEP)                                                       |
+| **Beverages**       | Coca-Cola Co. (KO)                                                       |
+| **Pharmaceuticals** | Pfizer Inc. (PFE)                                                        |
+| **Aerospace**       | Boeing Co. (BA)                                                          |
+| **Media**           | Netflix Inc. (NFLX), Meta Platforms Inc. (META)                          |
 
 ## 🚀 Quick Start
 

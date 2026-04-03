@@ -19,36 +19,33 @@ def load_companies():
         return df.to_dict('records')
     except Exception as e:
         print(f"Error loading companies: {e}")
-        # Fallback data (only if CSV fails)
+        # Fallback data (only if CSV fails) - exactly your 25 companies
         return [
             {'ticker': 'AAPL', 'name': 'Apple Inc.', 'sector': 'Technology', 'watch': 'Yes'},
             {'ticker': 'MSFT', 'name': 'Microsoft Corp.', 'sector': 'Technology', 'watch': 'Yes'},
             {'ticker': 'GOOGL', 'name': 'Alphabet Inc.', 'sector': 'Technology', 'watch': 'Yes'},
+            {'ticker': 'AMZN', 'name': 'Amazon.com Inc.', 'sector': 'Retail', 'watch': 'Yes'},
             {'ticker': 'NVDA', 'name': 'NVIDIA Corp.', 'sector': 'Semiconductors', 'watch': 'Yes'},
+            {'ticker': 'META', 'name': 'Meta Platforms Inc.', 'sector': 'Media', 'watch': 'Yes'},
             {'ticker': 'TSLA', 'name': 'Tesla Inc.', 'sector': 'Auto', 'watch': 'Yes'},
-            {'ticker': 'WMT', 'name': 'Walmart Inc.', 'sector': 'Retail', 'watch': 'Yes'},
-            {'ticker': 'MCD', 'name': "McDonald's Corp.", 'sector': 'Retail', 'watch': 'Yes'},
-            {'ticker': 'COST', 'name': 'Costco Wholesale Corp.', 'sector': 'Retail', 'watch': 'Yes'},
-            {'ticker': 'HD', 'name': 'Home Depot Inc.', 'sector': 'Retail', 'watch': 'Yes'},
-            {'ticker': 'UNH', 'name': 'UnitedHealth Group Inc.', 'sector': 'Healthcare', 'watch': 'Yes'},
-            {'ticker': 'XOM', 'name': 'Exxon Mobil Corp.', 'sector': 'Energy', 'watch': 'Yes'},
             {'ticker': 'JPM', 'name': 'JPMorgan Chase & Co.', 'sector': 'Financial', 'watch': 'Yes'},
             {'ticker': 'V', 'name': 'Visa Inc.', 'sector': 'Financial', 'watch': 'Yes'},
-            {'ticker': 'MA', 'name': 'Mastercard Inc.', 'sector': 'Financial', 'watch': 'Yes'},
-            {'ticker': 'PG', 'name': 'Procter & Gamble Co.', 'sector': 'Consumer Staples', 'watch': 'Yes'},
-            {'ticker': 'KO', 'name': 'Coca-Cola Co.', 'sector': 'Beverages', 'watch': 'Yes'},
-            {'ticker': 'PFE', 'name': 'Pfizer Inc.', 'sector': 'Pharmaceuticals', 'watch': 'Yes'},
+            {'ticker': 'WMT', 'name': 'Walmart Inc.', 'sector': 'Retail', 'watch': 'Yes'},
             {'ticker': 'JNJ', 'name': 'Johnson & Johnson', 'sector': 'Healthcare', 'watch': 'Yes'},
-            {'ticker': 'CAT', 'name': 'Caterpillar Inc.', 'sector': 'Industrials', 'watch': 'Yes'},
-            {'ticker': 'BA', 'name': 'Boeing Co.', 'sector': 'Aerospace', 'watch': 'Yes'},
-            {'ticker': 'IBM', 'name': 'IBM Corp.', 'sector': 'Technology', 'watch': 'Yes'},
-            {'ticker': 'ORCL', 'name': 'Oracle Corp.', 'sector': 'Technology', 'watch': 'Yes'},
-            {'ticker': 'ADBE', 'name': 'Adobe Inc.', 'sector': 'Technology', 'watch': 'Yes'},
-            {'ticker': 'AMD', 'name': 'AMD Inc.', 'sector': 'Semiconductors', 'watch': 'Yes'},
-            {'ticker': 'INTC', 'name': 'Intel Corp.', 'sector': 'Semiconductors', 'watch': 'Yes'},
-            {'ticker': 'AMZN', 'name': 'Amazon.com Inc.', 'sector': 'Retail', 'watch': 'Yes'},
+            {'ticker': 'PG', 'name': 'Procter & Gamble Co.', 'sector': 'Consumer Staples', 'watch': 'Yes'},
+            {'ticker': 'HD', 'name': 'Home Depot Inc.', 'sector': 'Retail', 'watch': 'Yes'},
+            {'ticker': 'MA', 'name': 'Mastercard Inc.', 'sector': 'Financial', 'watch': 'Yes'},
+            {'ticker': 'BAC', 'name': 'Bank of America Corp.', 'sector': 'Financial', 'watch': 'Yes'},
             {'ticker': 'NFLX', 'name': 'Netflix Inc.', 'sector': 'Media', 'watch': 'Yes'},
-            {'ticker': 'META', 'name': 'Meta Platforms Inc.', 'sector': 'Media', 'watch': 'Yes'},
+            {'ticker': 'DIS', 'name': 'Walt Disney Co.', 'sector': 'Media', 'watch': 'Yes'},
+            {'ticker': 'KO', 'name': 'Coca-Cola Co.', 'sector': 'Beverages', 'watch': 'Yes'},
+            {'ticker': 'PEP', 'name': 'PepsiCo Inc.', 'sector': 'Beverages', 'watch': 'Yes'},
+            {'ticker': 'CSCO', 'name': 'Cisco Systems Inc.', 'sector': 'Technology', 'watch': 'Yes'},
+            {'ticker': 'ABNB', 'name': 'Airbnb Inc.', 'sector': 'Technology', 'watch': 'Yes'},
+            {'ticker': 'UBER', 'name': 'Uber Technologies Inc.', 'sector': 'Technology', 'watch': 'Yes'},
+            {'ticker': 'AMD', 'name': 'Advanced Micro Devices Inc.', 'sector': 'Semiconductors', 'watch': 'Yes'},
+            {'ticker': 'INTC', 'name': 'Intel Corp.', 'sector': 'Semiconductors', 'watch': 'Yes'},
+            {'ticker': 'IBM', 'name': 'International Business Machines Corp.', 'sector': 'Technology', 'watch': 'Yes'},
         ]
 
 # Load companies from CSV

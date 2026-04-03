@@ -1,11 +1,13 @@
-# core/data_fetcher.py
 """
 Data fetching module using Financial Modeling Prep (FMP) API
 Updated to use /stable/ endpoints with full error handling and market cap fix
 """
+from dotenv import load_dotenv
+load_dotenv()
 
-import requests
+import os
 import pandas as pd
+import requests
 import numpy as np
 import logging
 import time
@@ -18,8 +20,12 @@ logger = logging.getLogger(__name__)
 # Setup cache (24 hours)
 cache = diskcache.Cache('data/cache')
 
-# Your free API key from FMP
-API_KEY = "sNlywRIpXRu4ZeAiRFxbrP8gVIo1HyDT"
+# Get API key from environment variable (set in Render)
+API_KEY = os.environ.get("FMP_API_KEY", "")
+
+# Warn if API key is missing
+if not API_KEY:
+    logger.warning("⚠️ FMP_API_KEY environment variable not set! Please set it in Render dashboard.")
 
 class DataFetcher:
     """Fetch financial data from Financial Modeling Prep API."""

@@ -1,29 +1,26 @@
-ticker,name,sp_rating
-AAPL,Apple Inc.,AA+
-MSFT,Microsoft Corp.,AAA
-GOOGL,Alphabet Inc.,AA+
-NVDA,NVIDIA Corp.,AA-
-TSLA,Tesla Inc.,BBB
-WMT,Walmart Inc.,AA
-MCD,McDonald's Corp.,BBB+
-COST,Costco Wholesale Corp.,A+
-HD,Home Depot Inc.,A
-UNH,UnitedHealth Group Inc.,A+
-XOM,Exxon Mobil Corp.,AA-
-JPM,JPMorgan Chase & Co.,A-
-V,Visa Inc.,AA-
-MA,Mastercard Inc.,A+
-PG,Procter & Gamble Co.,AA-
-KO,Coca-Cola Co.,A+
-PFE,Pfizer Inc.,A
-JNJ,Johnson & Johnson,AAA
-CAT,Caterpillar Inc.,A
-BA,Boeing Co.,BBB-
-IBM,International Business Machines Corp.,A-
-ORCL,Oracle Corp.,BBB+
-ADBE,Adobe Inc.,A+
-AMD,Advanced Micro Devices Inc.,BBB+
-INTC,Intel Corp.,BBB+
-AMZN,Amazon.com Inc.,AA
-NFLX,Netflix Inc.,BBB+
-META,Meta Platforms Inc.,AA-
+ticker,name,sp_rating,rating_date,fiscal_period_used,period_end_date,source
+AAPL,Apple Inc.,AA+,2025-12-15,FY2025,2025-09-27,Manual Entry
+MSFT,Microsoft Corp.,AAA,2025-12-15,FY2025,2025-06-30,Manual Entry
+GOOGL,Alphabet Inc.,AA+,2025-12-15,FY2025,2025-12-31,Manual Entry
+NVDA,NVIDIA Corp.,AA-,2025-12-15,FY2026,2026-01-25,Manual Entry
+TSLA,Tesla Inc.,BBB,2025-12-15,FY2025,2025-12-31,Manual Entry
+WMT,Walmart Inc.,AA,2025-12-15,FY2025,2025-10-31,Manual Entry
+SBUX,Starbucks Corp.,BBB+,2025-12-15,FY2025,2025-09-30,Manual Entry
+COST,Costco Wholesale Corp.,A+,2025-12-15,FY2025,2025-08-31,Manual Entry
+LOW,Lowe's Companies Inc.,A,2025-12-15,FY2025,2025-01-31,Manual Entry
+UNH,UnitedHealth Group Inc.,A+,2025-12-15,FY2025,2025-12-31,Manual Entry
+XOM,Exxon Mobil Corp.,AA-,2025-12-15,FY2025,2025-12-31,Manual Entry
+JPM,JPMorgan Chase & Co.,A-,2025-12-15,FY2025,2025-12-31,Manual Entry
+V,Visa Inc.,AA-,2025-12-15,FY2025,2025-09-30,Manual Entry
+PEP,PepsiCo Inc.,A+,2025-12-15,FY2025,2025-12-31,Manual Entry
+KO,Coca-Cola Co.,A+,2025-12-15,FY2025,2025-12-31,Manual Entry
+PFE,Pfizer Inc.,A,2025-12-15,FY2025,2025-12-31,Manual Entry
+JNJ,Johnson & Johnson,AAA,2025-12-15,FY2025,2025-12-31,Manual Entry
+BA,Boeing Co.,BBB-,2025-12-15,FY2025,2025-12-31,Manual Entry
+IBM,International Business Machines Corp.,A-,2025-12-15,FY2025,2025-12-31,Manual Entry
+ADBE,Adobe Inc.,A+,2025-12-15,FY2025,2025-11-29,Manual Entry
+AMD,Advanced Micro Devices Inc.,BBB+,2025-12-15,FY2025,2025-12-31,Manual Entry
+INTC,Intel Corp.,BBB+,2025-12-15,FY2025,2025-12-31,Manual Entry
+AMZN,Amazon.com Inc.,AA,2025-12-15,FY2025,2025-12-31,Manual Entry
+NFLX,Netflix Inc.,BBB+,2025-12-15,FY2025,2025-12-31,Manual Entry
+META,Meta Platforms Inc.,AA-,2025-12-15,FY2025,2025-12-31,Manual Entry

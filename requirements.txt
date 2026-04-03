@@ -5,9 +5,13 @@ python-multipart==0.0.6
 
 # Dashboard
 dash==2.14.0
+dash-bootstrap-components==1.5.0
 plotly==5.18.0
 pandas==2.1.3
-numpy==1.26.0              # Updated to 1.26.0 (works with Python 3.12)
+numpy==1.26.0
+
+# Machine Learning
+scikit-learn==1.3.2
 
 # Data fetching
 yfinance==0.2.33
@@ -27,17 +31,13 @@ websockets==12.0
 # PDF reports
 reportlab==4.0.7
 
+# Caching / Deployment
+diskcache==5.6.1
+gunicorn==21.2.0
+
+# Environment / Utilities
+python-dotenv==1.0.0
+
 # Testing
 pytest==7.4.3
 pytest-asyncio==0.21.1
-
-# Utilities
-python-dotenv==1.0.0
-
-dash==2.14.0
-plotly==5.18.0
-pandas==2.1.3
-numpy==1.26.0
-requests==2.31.0
-diskcache==5.6.1
-gunicorn==21.2.0

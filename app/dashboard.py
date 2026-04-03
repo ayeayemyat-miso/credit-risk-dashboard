@@ -194,7 +194,7 @@ app.layout = html.Div([
         dcc.Tabs(id='tabs', value='risk-scores', children=[
             dcc.Tab(label='📊 Risk Scores', value='risk-scores', 
                    style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
-            dcc.Tab(label='📈 KBRA', value='kbra-ratios',
+            dcc.Tab(label='📈 Ratios', value='kbra-ratios',
                    style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),
             dcc.Tab(label='🎯 Component Breakdown', value='component-breakdown',
                    style={'font-weight': 'bold'}, selected_style={'font-weight': 'bold', 'border-top': '3px solid #3498db'}),

@@ -9,7 +9,7 @@
 
 ## 🌐 Live Demo
 
-**Try it yourself:** [https://credit-risk-dashboard-1-bgq5.onrender.com](https://credit-risk-dashboard-1-bgq5.onrender.com)
+**Try it yourself:** [[https://credit-risk-dashboard-1-bgq5.onrender.com](https://credit-risk-dashboard-tix8.onrender.com)]
 
 > *Note: The free tier may take 1-3 minutes to wake up after inactivity.*
 
